@@ -1,7 +1,8 @@
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using People_Specification.Api.Data;
 using People_Specification.Api.Mappings;
 using People_Specification.Api.Repositories;
@@ -42,6 +43,8 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllers();
 
 builder.Services.AddAutoMapper(
@@ -50,7 +53,33 @@ builder.Services.AddAutoMapper(
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 

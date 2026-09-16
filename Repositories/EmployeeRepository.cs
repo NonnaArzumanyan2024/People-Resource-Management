@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using People_Specification.Api.Data;
 using People_Specification.Api.Models;
+using People_Specification.Api.Specifications;
 
 namespace People_Specification.Api.Repositories;
 
@@ -42,5 +43,13 @@ public class EmployeeRepository : IEmployeeRepository
     {
         _context.Employees.Remove(employee);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Employee>> GetBySpecificationAsync(
+        ISpecification specification)
+    {
+        return await _context.Employees
+            .Where(specification.Criteria)
+            .ToListAsync();
     }
 }

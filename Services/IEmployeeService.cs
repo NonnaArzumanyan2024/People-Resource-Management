@@ -13,4 +13,14 @@ public interface IEmployeeService
     Task UpdateAsync(Employee employee);
 
     Task DeleteAsync(int id);
+
+    Task<List<Employee>> GetActiveEmployeesAsync();
+
+    Task<List<Employee>> GetInactiveEmployeesAsync();
+
+    Task<List<Employee>> GetByDepartmentAsync(string department);
+
+    Task<List<Employee>> GetByPositionAsync(string position);
+
+    Task<List<Employee>> GetByHireDateAsync(DateTime hireDate);
 }

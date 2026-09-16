@@ -15,47 +15,46 @@ public class EmployeesController : ControllerBase
 
     public EmployeesController(IEmployeeService service, IMapper mapper)
     {
-    _service = service;
-    _mapper = mapper;
+        _service = service;
+        _mapper = mapper;
     }
 
     [HttpGet]
-public async Task<ActionResult<List<EmployeeDto>>> GetAll()
-{
-    var employees = await _service.GetAllAsync();
-
-    var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
-    return Ok(employeeDtos);
-}
-
-
-    [HttpGet("{id}")]
-public async Task<ActionResult<EmployeeDto>> GetById(int id)
-{
-    var employee = await _service.GetByIdAsync(id);
-
-    if (employee == null)
+    public async Task<ActionResult<List<EmployeeDto>>> GetAll()
     {
-        return NotFound();
+        var employees = await _service.GetAllAsync();
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
     }
 
-    var employeeDto = _mapper.Map<EmployeeDto>(employee);
+    [HttpGet("{id}")]
+    public async Task<ActionResult<EmployeeDto>> GetById(int id)
+    {
+        var employee = await _service.GetByIdAsync(id);
 
-    return Ok(employeeDto);
-}
+        if (employee == null)
+        {
+            return NotFound();
+        }
+
+        var employeeDto = _mapper.Map<EmployeeDto>(employee);
+
+        return Ok(employeeDto);
+    }
 
     [HttpPost]
-public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
-{
-    var employee = _mapper.Map<Employee>(employeeDto);
+    public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
+    {
+        var employee = _mapper.Map<Employee>(employeeDto);
 
-    var createdEmployee = await _service.AddAsync(employee);
+        var createdEmployee = await _service.AddAsync(employee);
 
-    var createdEmployeeDto = _mapper.Map<EmployeeDto>(createdEmployee);
+        var createdEmployeeDto = _mapper.Map<EmployeeDto>(createdEmployee);
 
-    return Ok(createdEmployeeDto);
-}
+        return Ok(createdEmployeeDto);
+    }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, EmployeeDto employeeDto)
@@ -79,7 +78,6 @@ public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
         return NoContent();
     }
 
-    
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -95,4 +93,56 @@ public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
         return NoContent();
     }
 
+    [HttpGet("active")]
+    public async Task<ActionResult<List<EmployeeDto>>> GetActiveEmployees()
+    {
+        var employees = await _service.GetActiveEmployeesAsync();
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
+    }
+
+    [HttpGet("inactive")]
+    public async Task<ActionResult<List<EmployeeDto>>> GetInactiveEmployees()
+    {
+        var employees = await _service.GetInactiveEmployeesAsync();
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
+    }
+
+    [HttpGet("department/{department}")]
+    public async Task<ActionResult<List<EmployeeDto>>> GetByDepartment(
+        string department)
+    {
+        var employees = await _service.GetByDepartmentAsync(department);
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
+    }
+
+    [HttpGet("position/{position}")]
+    public async Task<ActionResult<List<EmployeeDto>>> GetByPosition(
+        string position)
+    {
+        var employees = await _service.GetByPositionAsync(position);
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
+    }
+
+    [HttpGet("hire-date")]
+    public async Task<ActionResult<List<EmployeeDto>>> GetByHireDate(
+        [FromQuery] DateTime hireDate)
+    {
+        var employees = await _service.GetByHireDateAsync(hireDate);
+
+        var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
+        return Ok(employeeDtos);
+    }
 }

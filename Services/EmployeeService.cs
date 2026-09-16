@@ -1,5 +1,6 @@
 using People_Specification.Api.Models;
 using People_Specification.Api.Repositories;
+using People_Specification.Api.Specifications.Employees;
 
 namespace People_Specification.Api.Services;
 
@@ -42,5 +43,45 @@ public class EmployeeService : IEmployeeService
         }
 
         await _repository.DeleteAsync(employee);
+    }
+
+    public async Task<List<Employee>> GetActiveEmployeesAsync()
+    {
+        var specification = new ActiveEmployeesSpecification();
+
+        return await _repository.GetBySpecificationAsync(specification);
+    }
+
+    public async Task<List<Employee>> GetInactiveEmployeesAsync()
+    {
+        var specification = new InactiveEmployeesSpecification();
+
+        return await _repository.GetBySpecificationAsync(specification);
+    }
+
+    public async Task<List<Employee>> GetByDepartmentAsync(string department)
+    {
+        var specification = new EmployeesByDepartmentSpecification(department);
+
+        return await _repository.GetBySpecificationAsync(specification);
+    }
+
+    public async Task<List<Employee>> GetByPositionAsync(string position)
+    {
+        var specification = new EmployeesByPositionSpecification(position);
+
+        return await _repository.GetBySpecificationAsync(specification);
+    }
+
+    public async Task<List<Employee>> GetByHireDateAsync(DateTime hireDate)
+    {
+        var specification = new EmployeesByHireDateSpecification(hireDate);
+
+        return await _repository.GetBySpecificationAsync(specification);
+    }
+
+    public async Task<List<Employee>> Employees(EmployeeFilterModel filterModel)
+    {
+        
     }
 }
