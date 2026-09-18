@@ -21,6 +21,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IEmployeeExportService, EmployeeExportService>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>

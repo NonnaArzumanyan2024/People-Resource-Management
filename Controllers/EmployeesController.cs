@@ -12,11 +12,16 @@ public class EmployeesController : ControllerBase
 {
     private readonly IEmployeeService _service;
     private readonly IMapper _mapper;
+    private readonly IEmployeeExportService _employeeExportService;
 
-    public EmployeesController(IEmployeeService service, IMapper mapper)
+    public EmployeesController(
+        IEmployeeService service,
+        IMapper mapper,
+        IEmployeeExportService employeeExportService)
     {
         _service = service;
         _mapper = mapper;
+        _employeeExportService = employeeExportService;
     }
 
     [HttpGet]
@@ -145,4 +150,29 @@ public class EmployeesController : ControllerBase
 
         return Ok(employeeDtos);
     }
-}
+
+    [HttpGet("export/excel")]
+    public async Task<IActionResult> ExportToExcel()
+    {
+        var employees = await _service.GetAllAsync();
+        var fileBytes = _employeeExportService.ExportToExcel(employees);
+
+        return File(
+            fileBytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "employees.xlsx");
+    }
+
+    [HttpGet("export/html")]
+    public async Task<IActionResult> ExportToHtml()
+    {
+        var employees = await _service.GetAllAsync();
+        var html = _employeeExportService.ExportToHtml(employees);
+
+        return File(
+        
+        System.Text.Encoding.UTF8.GetBytes(html),
+        "text/html",
+        "employees.html");
+    }
+}  

@@ -79,9 +79,4 @@ public class EmployeeService : IEmployeeService
 
         return await _repository.GetBySpecificationAsync(specification);
     }
-
-    public async Task<List<Employee>> Employees(EmployeeFilterModel filterModel)
-    {
-        
-    }
 }

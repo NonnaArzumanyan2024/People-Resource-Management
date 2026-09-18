@@ -38,5 +38,4 @@ public class AuthController : ControllerBase
             token
         });
     }
-
 }
