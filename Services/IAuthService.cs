@@ -5,6 +5,5 @@ namespace People_Specification.Api.Services;
 public interface IAuthService
 {
     Task RegisterAsync(RegisterRequestDto request);
-
     Task<string?> LoginAsync(LoginRequestDto request);
 }

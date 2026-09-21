@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using People_Specification.Api.Models;
 using People_Specification.Api.Services;
@@ -8,6 +9,7 @@ namespace People_Specification.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class EmployeesController : ControllerBase
 {
     private readonly IEmployeeService _service;
@@ -25,6 +27,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetAll()
     {
         var employees = await _service.GetAllAsync();
@@ -37,6 +40,19 @@ public class EmployeesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<EmployeeDto>> GetById(int id)
     {
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var employeeIdClaim = User.FindFirst("employeeId")?.Value;
+
+        if (role != "Admin")
+        {
+            if (employeeIdClaim == null ||
+                !int.TryParse(employeeIdClaim, out var employeeId) ||
+                employeeId != id)
+            {
+                return Forbid();
+            }
+        }
+
         var employee = await _service.GetByIdAsync(id);
 
         if (employee == null)
@@ -50,6 +66,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
     {
         var employee = _mapper.Map<Employee>(employeeDto);
@@ -62,6 +79,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, EmployeeDto employeeDto)
     {
         var employee = _mapper.Map<Employee>(employeeDto);
@@ -84,6 +102,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var employee = await _service.GetByIdAsync(id);
@@ -99,6 +118,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("active")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetActiveEmployees()
     {
         var employees = await _service.GetActiveEmployeesAsync();
@@ -109,6 +129,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("inactive")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetInactiveEmployees()
     {
         var employees = await _service.GetInactiveEmployeesAsync();
@@ -119,6 +140,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("department/{department}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetByDepartment(
         string department)
     {
@@ -130,6 +152,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("position/{position}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetByPosition(
         string position)
     {
@@ -141,6 +164,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("hire-date")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetByHireDate(
         [FromQuery] DateTime hireDate)
     {
@@ -152,6 +176,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("export/excel")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToExcel()
     {
         var employees = await _service.GetAllAsync();
@@ -164,15 +189,17 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("export/html")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExportToHtml()
     {
         var employees = await _service.GetAllAsync();
         var html = _employeeExportService.ExportToHtml(employees);
 
         return File(
-        
+
         System.Text.Encoding.UTF8.GetBytes(html),
         "text/html",
         "employees.html");
     }
+    
 }  

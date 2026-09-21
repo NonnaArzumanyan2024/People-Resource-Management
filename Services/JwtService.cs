@@ -30,9 +30,10 @@ public class JwtService
         {
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim("employeeId", user.EmployeeId.ToString())
         };
-
+        
         var securityKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(key));
 

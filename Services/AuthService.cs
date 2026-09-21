@@ -31,20 +31,29 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Username already exists.");
         }
 
-        var employee = await _context.Employees
-            .FirstOrDefaultAsync(e => e.Id == request.EmployeeId);
-
-        if (employee is null)
+        var employee = new Employee
         {
-            throw new InvalidOperationException("Employee not found.");
-        }
+            EmployeeNumber = request.EmployeeNumber,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            WorkEmail = request.WorkEmail,
+            PhoneNumber = request.PhoneNumber,
+            Department = request.Department,
+            Position = request.Position,
+            HireDate = request.HireDate,
+            IsActive = request.IsActive
+        };
+
+        _context.Employees.Add(employee);
+
+        await _context.SaveChangesAsync();
 
         var user = new User
         {
             Username = request.Username,
             PasswordHash = _passwordHasher.HashPassword(request.Password),
-            Role = UserRole.Employee,
-            EmployeeId = request.EmployeeId,
+            Role = request.Role,
+            EmployeeId = employee.Id,
             IsActive = true
         };
 
