@@ -12,8 +12,8 @@ using People_Specification.Api.Data;
 namespace People_Specification.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260913154739_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260923082712_AddUnitHierarchy")]
+    partial class AddUnitHierarchy
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -63,13 +63,40 @@ namespace People_Specification.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UnitId");
+
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("People_Specification.Api.Models.Unit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ParentUnitId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentUnitId");
+
+                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("People_Specification.Api.Models.User", b =>
@@ -100,6 +127,33 @@ namespace People_Specification.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("People_Specification.Api.Models.Employee", b =>
+                {
+                    b.HasOne("People_Specification.Api.Models.Unit", "Unit")
+                        .WithMany("Employees")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("People_Specification.Api.Models.Unit", b =>
+                {
+                    b.HasOne("People_Specification.Api.Models.Unit", "ParentUnit")
+                        .WithMany("ChildUnits")
+                        .HasForeignKey("ParentUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentUnit");
+                });
+
+            modelBuilder.Entity("People_Specification.Api.Models.Unit", b =>
+                {
+                    b.Navigation("ChildUnits");
+
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

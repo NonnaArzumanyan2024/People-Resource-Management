@@ -36,7 +36,7 @@ public class AuthService : IAuthService
             EmployeeNumber = request.EmployeeNumber,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            WorkEmail = request.WorkEmail,
+            Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             Department = request.Department,
             Position = request.Position,

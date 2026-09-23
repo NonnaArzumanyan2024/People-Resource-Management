@@ -14,7 +14,7 @@ public class EmployeeExportService : IEmployeeExportService
         worksheet.Cell(1, 2).Value = "EmployeeNumber";
         worksheet.Cell(1, 3).Value = "FirstName";
         worksheet.Cell(1, 4).Value = "LastName";
-        worksheet.Cell(1, 5).Value = "WorkEmail";
+        worksheet.Cell(1, 5).Value = "Email";
         worksheet.Cell(1, 6).Value = "PhoneNumber";
         worksheet.Cell(1, 7).Value = "Department";
         worksheet.Cell(1, 8).Value = "Position";
@@ -30,7 +30,7 @@ public class EmployeeExportService : IEmployeeExportService
             worksheet.Cell(row, 2).Value = employee.EmployeeNumber;
             worksheet.Cell(row, 3).Value = employee.FirstName;
             worksheet.Cell(row, 4).Value = employee.LastName;
-            worksheet.Cell(row, 5).Value = employee.WorkEmail;
+            worksheet.Cell(row, 5).Value = employee.Email;
             worksheet.Cell(row, 6).Value = employee.PhoneNumber;
             worksheet.Cell(row, 7).Value = employee.Department;
             worksheet.Cell(row, 8).Value = employee.Position;
@@ -79,7 +79,7 @@ public class EmployeeExportService : IEmployeeExportService
                         <th>EmployeeNumber</th>
                         <th>FirstName</th>
                         <th>LastName</th>
-                        <th>WorkEmail</th>
+                        <th>Email</th>
                         <th>PhoneNumber</th>
                         <th>Department</th>
                         <th>Position</th>
@@ -98,7 +98,7 @@ public class EmployeeExportService : IEmployeeExportService
                         <td>{employee.EmployeeNumber}</td>
                         <td>{employee.FirstName}</td>
                         <td>{employee.LastName}</td>
-                        <td>{employee.WorkEmail}</td>
+                        <td>{employee.Email}</td>
                         <td>{employee.PhoneNumber}</td>
                         <td>{employee.Department}</td>
                         <td>{employee.Position}</td>
