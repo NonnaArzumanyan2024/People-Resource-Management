@@ -1,4 +1,4 @@
-namespace People_Specification.Api.Models;
+namespace People_Specification.Api.Common;
 
 public enum UserRole
 {

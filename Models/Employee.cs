@@ -1,8 +1,7 @@
 namespace People_Specification.Api.Models;
 
-public class Employee
+public class Employee : EntityBase
 {
-    public int Id { get; set; }
     public required string EmployeeNumber { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }

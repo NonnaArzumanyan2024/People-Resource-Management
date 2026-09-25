@@ -1,8 +1,9 @@
+using People_Specification.Api.Common;
+
 namespace People_Specification.Api.Models;
 
-public class User
+public class User : EntityBase
 {
-    public int Id { get; set; }
     public required string Username { get; set; }
     public required string PasswordHash { get; set; }
     public UserRole Role { get; set; }

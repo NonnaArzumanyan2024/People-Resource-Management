@@ -1,4 +1,5 @@
-using People_Specification.Api.Models;
+
+using People_Specification.Api.Common;
 
 namespace People_Specification.Api.DTOs;
 

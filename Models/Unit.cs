@@ -1,8 +1,7 @@
 namespace People_Specification.Api.Models;
 
-public class Unit
+public class Unit : EntityBase
 {
-    public int Id { get; set; }
     public required string Name { get; set; }
     public int? ParentUnitId { get; set; }
     public Unit? ParentUnit { get; set; }
