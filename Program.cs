@@ -25,6 +25,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IEmployeeExportService, EmployeeExportService>();
 
+builder.Services.AddScoped<
+    IOrganizationTreeHtmlExportService,
+    OrganizationTreeHtmlExportService>();
+
+builder.Services.AddScoped<
+    IOrganizationTreeExcelExportService,
+    OrganizationTreeExcelExportService>();
+    
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {

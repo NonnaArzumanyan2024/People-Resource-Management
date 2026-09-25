@@ -20,7 +20,15 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-    // 2. Get unit by Id
+    // 2. Get all units with their employees
+    public async Task<List<Unit>> GetAllWithEmployeesAsync()
+    {
+        return await _context.Units
+            .Include(unit => unit.Employees)
+            .ToListAsync();
+    }
+
+    // 3. Get unit by Id
     public async Task<Unit?> GetByIdAsync(int id)
     {
         return await _context.Units

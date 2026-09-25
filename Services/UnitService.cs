@@ -6,7 +6,6 @@ namespace People_Specification.Api.Services;
 public class UnitService : IUnitService
 {
     private readonly IUnitRepository _unitRepository;
-
     public UnitService(IUnitRepository unitRepository)
     {
         _unitRepository = unitRepository;
@@ -15,6 +14,10 @@ public class UnitService : IUnitService
     public async Task<List<Unit>> GetAllAsync()
     {
         return await _unitRepository.GetAllAsync();
+    }
+    public async Task<List<Unit>> GetAllWithEmployeesAsync()
+    {
+        return await _unitRepository.GetAllWithEmployeesAsync();
     }
 
     public async Task<Unit?> GetByIdAsync(int id)

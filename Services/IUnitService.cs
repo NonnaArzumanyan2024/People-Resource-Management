@@ -5,6 +5,7 @@ namespace People_Specification.Api.Services;
 public interface IUnitService
 {
     Task<List<Unit>> GetAllAsync();
+    Task<List<Unit>> GetAllWithEmployeesAsync();
     Task<Unit?> GetByIdAsync(int id);
     Task<Unit?> GetParentAsync(int unitId);
     Task<List<Unit>> GetChildrenAsync(int parentUnitId);

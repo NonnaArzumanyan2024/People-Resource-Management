@@ -13,11 +13,19 @@ namespace People_Specification.Api.Controllers;
 public class UnitsController : ControllerBase
 {
     private readonly IUnitService _unitService;
+    private readonly IOrganizationTreeHtmlExportService _htmlExportService;
+    private readonly IOrganizationTreeExcelExportService _excelExportService;
 
-    public UnitsController(IUnitService unitService)
+    public UnitsController(
+    IUnitService unitService,
+    IOrganizationTreeHtmlExportService htmlExportService,
+    IOrganizationTreeExcelExportService excelExportService)
     {
         _unitService = unitService;
+        _htmlExportService = htmlExportService;
+        _excelExportService = excelExportService;
     }
+
 
     [HttpGet]
     public async Task<ActionResult<List<UnitDto>>> GetAll()
@@ -154,9 +162,9 @@ public class UnitsController : ControllerBase
 
         var result = new UnitDto
         {
-        Id = root.Id,
-        Name = root.Name,
-        ParentUnitId = root.ParentUnitId
+            Id = root.Id,
+            Name = root.Name,
+            ParentUnitId = root.ParentUnitId
         };
 
         return Ok(result);
@@ -192,7 +200,7 @@ public class UnitsController : ControllerBase
         return Ok(result);
     }
 
-    
+
     [HttpGet("with-children")]
     public async Task<ActionResult<List<UnitDto>>> GetUnitsWithChildren()
     {
@@ -206,6 +214,34 @@ public class UnitsController : ControllerBase
         }).ToList();
 
         return Ok(result);
+    }
+
+    [HttpGet("export-tree-html")]
+    public async Task<IActionResult> ExportTreeToHtml()
+    {
+        var units = await _unitService.GetAllWithEmployeesAsync();
+
+        var html = _htmlExportService.ExportToHtml(units);
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(html);
+
+        return File(
+            bytes,
+            "text/html",
+            "organization-tree.html");
+    }
+
+    [HttpGet("export-tree-excel")]
+    public async Task<IActionResult> ExportTreeToExcel()
+    {
+        var units = await _unitService.GetAllWithEmployeesAsync();
+
+        var excel = _excelExportService.ExportToExcel(units);
+
+        return File(
+            excel,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "organization-tree.xlsx");
     }
 
 }

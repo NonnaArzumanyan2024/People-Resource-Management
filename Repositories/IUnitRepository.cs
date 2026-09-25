@@ -1,12 +1,11 @@
 using People_Specification.Api.Models;
 
-using People_Specification.Api.Models;
-
 namespace People_Specification.Api.Repositories;
 
 public interface IUnitRepository
 {
     Task<List<Unit>> GetAllAsync();
+    Task<List<Unit>> GetAllWithEmployeesAsync();
     Task<Unit?> GetByIdAsync(int id);
     Task<Unit?> GetRootAsync();
     Task<Unit?> GetParentAsync(int unitId);
