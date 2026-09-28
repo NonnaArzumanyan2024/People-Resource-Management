@@ -14,17 +14,20 @@ public class EmployeeRepository : IEmployeeRepository
         _context = context;
     }
 
+    //1
     public async Task<List<Employee>> GetAllAsync()
     {
         return await _context.Employees.ToListAsync();
     }
 
+    //2
     public async Task<Employee?> GetByIdAsync(int id)
     {
         return await _context.Employees
             .FirstOrDefaultAsync(e => e.Id == id);
     }
 
+    //3
     public async Task<Employee> AddAsync(Employee employee)
     {
         _context.Employees.Add(employee);
@@ -33,18 +36,21 @@ public class EmployeeRepository : IEmployeeRepository
         return employee;
     }
 
+    //3
     public async Task UpdateAsync(Employee employee)
     {
         _context.Employees.Update(employee);
         await _context.SaveChangesAsync();
     }
 
+    //4
     public async Task DeleteAsync(Employee employee)
     {
         _context.Employees.Remove(employee);
         await _context.SaveChangesAsync();
     }
 
+    //5
     public async Task<List<Employee>> GetBySpecificationAsync(
         ISpecification specification)
     {
@@ -52,4 +58,5 @@ public class EmployeeRepository : IEmployeeRepository
             .Where(specification.Criteria)
             .ToListAsync();
     }
+    
 }

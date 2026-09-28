@@ -13,6 +13,7 @@ public class UnitRepository : IUnitRepository
         _context = context;
     }
 
+    // Read Queries
     // 1. Get all units
     public async Task<List<Unit>> GetAllAsync()
     {
@@ -243,7 +244,6 @@ public class UnitRepository : IUnitRepository
     public async Task<bool> HasEmployeesAsync(int unitId)
     {
         return await _context.Employees
-            .AsNoTracking()
             .AnyAsync(employee =>
                 employee.UnitId == unitId);
     }
@@ -266,7 +266,7 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-    // Get by hire date range 1
+    // 23․ Get by hire date range 1
     public async Task<List<Employee>> GetEmployeesByHireDateRangeAsync1(DateTime from, DateTime to)
     {
         return await _context.Employees
@@ -277,7 +277,7 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-    // Get by hire date range 2
+    // 24․ Get by hire date range 2
     public async Task<List<Employee>> GetEmployeesByHireDateRangeAsync2(DateTime from, DateTime to)
     {
         if (from > to)
@@ -293,48 +293,134 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-/*
-GetUnitsByParentIdAsync(int? parentUnitId) — բերել կոնկրետ parent-ի տակ եղած unit-ները։
-GetEmployeesByNameAsync(string searchText) — որոնել աշխատակցին անունով կամ ազգանունով։
-GetEmployeesByDepartmentAsync(string department) — եթե Department դեռ օգտագործվում է Employee-ում։
-GetEmployeesByEmailAsync(string email) — exact կամ partial email search։
-GetEmployeesByHireDateRangeAsync(DateTime from, DateTime to) — բերել տվյալ ժամանակահատվածում ընդունված աշխատակիցներին։
-GetActiveEmployeesAsync() — բոլոր ակտիվ աշխատակիցները՝ անկախ unit-ից։
-GetInactiveEmployeesAsync() — բոլոր ոչ ակտիվ աշխատակիցները։
-GetEmployeesByUnitAndPositionAsync(int unitId, string position) — միաժամանակ երկու filter։
-GetUnitsByEmployeeCountAsync(int minCount) — օրինակ բերել այն unit-ները, որտեղ առնվազն 5 employee կա։
-GetUnitsByNameAndParentAsync(string searchText, int? parentId) — search + hierarchy filter։
-GetEmployeesByNameAsync(string searchText)
-GetEmployeesByHireDateRangeAsync(DateTime from, DateTime to)
-GetEmployeesByUnitAndPositionAsync(int unitId, string position)
-*/
+    // 25. Get employees by department
+    public async Task<List<Employee>> GetEmployeesByDepartmentAsync(
+        string department)
+    {
+        if (string.IsNullOrWhiteSpace(department))
+        {
+            return new List<Employee>();
+        }
+
+        department = department.Trim();
+
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee =>
+                EF.Functions.ILike(employee.Department, department))
+            .ToListAsync();
+    }
+
+    // 26. Get employees of a unit by position
+    public async Task<List<Employee>> GetEmployeesByUnitAndPositionAsync(int unitId, string position)
+    {
+        if (string.IsNullOrWhiteSpace(position))
+        {
+            return new List<Employee>();
+        }
+
+        position = position.Trim();
+
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee =>
+                employee.UnitId == unitId &&
+                EF.Functions.ILike(employee.Position, position))
+            .ToListAsync();
+    }
+
+    // 27. Get units by parent Id
+    public async Task<List<Unit>> GetUnitsByParentIdAsync(int? parentUnitId)
+    {
+        return await _context.Units
+            .AsNoTracking()
+            .Where(unit =>
+                unit.ParentUnitId == parentUnitId)
+            .ToListAsync();
+    }
+
+    // 28. Get employees by email
+    public async Task<List<Employee>> GetEmployeesByEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return new List<Employee>();
+        }
+
+        email = email.Trim();
+
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee =>
+                EF.Functions.ILike(employee.Email, $"%{email}%"))
+            .ToListAsync();
+    }
+
+    // 29. Get all active employees method overloading, 11ի նման բայց առանց պարամետրի
+    public async Task<List<Employee>> GetActiveEmployeesAsync()
+    {
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee => employee.IsActive)
+            .ToListAsync();
+    }
+
+    // 30. Get active employees by department
+    public async Task<List<Employee>> GetActiveEmployeesAsync(string department)
+    {
+        if (string.IsNullOrWhiteSpace(department))
+        {
+            return new List<Employee>();
+        }
+
+        department = department.Trim();
+
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee =>
+                employee.IsActive &&
+                EF.Functions.ILike(employee.Department, department))
+            .ToListAsync();
+    }
+
+    // 31. Get all inactive employees
+    public async Task<List<Employee>> GetInactiveEmployeesAsync()
+    {
+        return await _context.Employees
+            .AsNoTracking()
+            .Where(employee => !employee.IsActive)
+            .ToListAsync();
+    }
+
+    //1
     public async Task<Unit> AddAsync(Unit unit)
     {
         _context.Units.Add(unit);
-
         await _context.SaveChangesAsync();
 
         return unit;
     }
 
+    //2
     public async Task UpdateAsync(Unit unit)
     {
         _context.Units.Update(unit);
-
         await _context.SaveChangesAsync();
     }
 
+    //3
     public async Task DeleteAsync(Unit unit)
     {
         _context.Units.Remove(unit);
-
         await _context.SaveChangesAsync();
     }
 
-    private async void SetParentId(Unit unit, int parentId)
+    //4
+    private async Task SetParentIdAsync(Unit unit, int parentId)
     {
         unit.ParentUnitId = parentId;
-        _context.SaveChanges();
+
+        await _context.SaveChangesAsync();
     }
 
 }
