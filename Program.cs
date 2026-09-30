@@ -3,10 +3,14 @@ using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using People_Specification.Api.Data;
-using People_Specification.Api.Mappings;
-using People_Specification.Api.Repositories;
-using People_Specification.Api.Services;
+using PeopleResourceManagement.Infrastructure.Data;
+using PeopleResourceManagement.Application.Mappings;
+using PeopleResourceManagement.Infrastructure.Repositories;
+using PeopleResourceManagement.Infrastructure.Services;
+using PeopleResourceManagement.Domain.Repositories;
+using PeopleResourceManagement.Application.Interfaces;
+using PeopleResourceManagement.Application.Services;
+using PeopleResourceManagement.Infrastructure.UnitOfWork;
 
 Env.Load();
 
@@ -18,12 +22,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<IUnitService, UnitService>();
-builder.Services.AddScoped<PasswordHasher>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<JwtService>();
+
 builder.Services.AddScoped<IEmployeeExportService, EmployeeExportService>();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<
     IOrganizationTreeHtmlExportService,
@@ -113,3 +124,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

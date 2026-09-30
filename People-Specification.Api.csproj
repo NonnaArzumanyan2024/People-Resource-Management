@@ -22,4 +22,23 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="PeopleResourceManagement.Domain\PeopleResourceManagement.Domain.csproj" />
+    <ProjectReference Include="PeopleResourceManagement.Application\PeopleResourceManagement.Application.csproj" />
+    <ProjectReference Include="PeopleResourceManagement.Infrastructure\PeopleResourceManagement.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PeopleResourceManagement.Domain\**\*.cs" />
+    <Compile Remove="PeopleResourceManagement.Application\**\*.cs" />
+    <Compile Remove="PeopleResourceManagement.Infrastructure\**\*.cs" />
+  </ItemGroup>
+
 </Project>
+
+
+
+
+
+
+

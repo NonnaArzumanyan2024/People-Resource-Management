@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using People_Specification.Api.DTOs;
-using People_Specification.Api.Models;
-using People_Specification.Api.Services;
+using PeopleResourceManagement.Application.DTOs;
+using PeopleResourceManagement.Domain.Entities;
+using PeopleResourceManagement.Application.Interfaces;
 
 namespace People_Specification.Api.Controllers;
 
@@ -245,3 +245,4 @@ public class UnitsController : ControllerBase
     }
 
 }
+

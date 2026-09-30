@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using People_Specification.Api.DTOs;
-using People_Specification.Api.Services;
+using PeopleResourceManagement.Application.DTOs;
+using PeopleResourceManagement.Application.Interfaces;
 
 namespace People_Specification.Api.Controllers;
 
