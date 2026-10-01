@@ -5,25 +5,14 @@ using PeopleResourceManagement.Domain.Repositories;
 
 namespace PeopleResourceManagement.Infrastructure.Repositories;
 
-public class UnitRepository : IUnitRepository
+public class UnitRepository : GenericRepository<Unit>, IUnitRepository
 {
-    private readonly AppDbContext _context;
-
     public UnitRepository(AppDbContext context)
+        : base(context)
     {
-        _context = context;
     }
 
-    // Read Queries
-    // 1. Get all units
-    public async Task<List<Unit>> GetAllAsync()
-    {
-        return await _context.Units
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    // 2. Get all units with their employees
+    // 1
     public async Task<List<Unit>> GetAllWithEmployeesAsync()
     {
         return await _context.Units
@@ -32,28 +21,18 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-    // 3. Get unit by Id
-    public async Task<Unit?> GetByIdAsync(int id)
-    {
-        return await _context.Units
-            .AsNoTracking()
-            .FirstOrDefaultAsync(unit => unit.Id == id);
-    }
-
-    // 4. Get root
+    // 2
     public async Task<Unit?> GetRootAsync()
     {
         return await _context.Units
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                unit => unit.ParentUnitId == null);
+            .FirstOrDefaultAsync(unit => unit.ParentUnitId == null);
     }
 
-    // 5. Get parent of a unit
+    // 3
     public async Task<Unit?> GetParentAsync(int unitId)
     {
         var parentId = await _context.Units
-            .AsNoTracking()
             .Where(unit => unit.Id == unitId)
             .Select(unit => unit.ParentUnitId)
             .FirstOrDefaultAsync();
@@ -68,66 +47,67 @@ public class UnitRepository : IUnitRepository
             .FirstOrDefaultAsync(unit => unit.Id == parentId);
     }
 
-    // 6. Get direct children
+    // 4
     public async Task<List<Unit>> GetChildrenAsync(int parentUnitId)
     {
         return await _context.Units
             .AsNoTracking()
-            .Where(unit =>
-                unit.ParentUnitId == parentUnitId)
+            .Where(unit => unit.ParentUnitId == parentUnitId)
             .ToListAsync();
     }
 
-    // 7. Get siblings
+    // 5
     public async Task<List<Unit>> GetSiblingsAsync(int unitId)
     {
-        var parentUnitId = await _context.Units
+        var unit = await _context.Units
             .AsNoTracking()
-            .Where(unit => unit.Id == unitId)
-            .Select(unit => unit.ParentUnitId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(unit => unit.Id == unitId);
+
+        if (unit == null)
+        {
+            return new List<Unit>();
+        }
 
         return await _context.Units
             .AsNoTracking()
-            .Where(unit =>
-                unit.ParentUnitId == parentUnitId &&
-                unit.Id != unitId)
+            .Where(otherUnit =>
+                otherUnit.ParentUnitId == unit.ParentUnitId &&
+                otherUnit.Id != unitId)
             .ToListAsync();
     }
 
-    // 8. Get leaf units
+    // 6
     public async Task<List<Unit>> GetLeafUnitsAsync()
     {
         return await _context.Units
             .AsNoTracking()
             .Where(unit =>
-                !_context.Units.Any(child =>
-                    child.ParentUnitId == unit.Id))
+                !_context.Units.Any(
+                    child => child.ParentUnitId == unit.Id))
             .ToListAsync();
     }
 
-    // 9. Get units that have children
+    // 7
     public async Task<List<Unit>> GetUnitsWithChildrenAsync()
     {
         return await _context.Units
             .AsNoTracking()
             .Where(unit =>
-                _context.Units.Any(child =>
-                    child.ParentUnitId == unit.Id))
+                _context.Units.Any(
+                    child => child.ParentUnitId == unit.Id))
             .ToListAsync();
     }
 
-    // 10. Get employees of a unit
+    // 8
     public async Task<List<Employee>> GetEmployeesAsync(int unitId)
     {
         return await _context.Employees
             .AsNoTracking()
-            .Where(employee =>
-                employee.UnitId == unitId)
+            .Where(employee => employee.UnitId == unitId)
             .ToListAsync();
     }
 
-    // 11. Get active employees of a unit
+    // 9
     public async Task<List<Employee>> GetActiveEmployeesAsync(int unitId)
     {
         return await _context.Employees
@@ -138,284 +118,100 @@ public class UnitRepository : IUnitRepository
             .ToListAsync();
     }
 
-    // 12. Get employees by position
+    // 10
     public async Task<List<Employee>> GetEmployeesByPositionAsync(
         string position)
     {
         return await _context.Employees
             .AsNoTracking()
             .Where(employee =>
-                employee.Position == position)
+                EF.Functions.ILike(
+                    employee.Position,
+                    $"%{position.Trim()}%"))
             .ToListAsync();
     }
 
-    // 13. Get units that have employees
+    // 11
     public async Task<List<Unit>> GetUnitsWithEmployeesAsync()
     {
         return await _context.Units
             .AsNoTracking()
-            .Where(unit =>
-                _context.Employees.Any(employee =>
-                    employee.UnitId == unit.Id))
+            .Where(unit => unit.Employees.Any())
             .ToListAsync();
     }
 
-    // 14. Get units without employees
+    // 12
     public async Task<List<Unit>> GetUnitsWithoutEmployeesAsync()
     {
         return await _context.Units
             .AsNoTracking()
-            .Where(unit =>
-                !_context.Employees.Any(employee =>
-                    employee.UnitId == unit.Id))
+            .Where(unit => !unit.Employees.Any())
             .ToListAsync();
     }
 
-    // 15. Get leaf units that have employees
+    // 13
     public async Task<List<Unit>> GetLeafUnitsWithEmployeesAsync()
     {
         return await _context.Units
             .AsNoTracking()
             .Where(unit =>
-                !_context.Units.Any(child =>
-                    child.ParentUnitId == unit.Id)
-                &&
-                _context.Employees.Any(employee =>
-                    employee.UnitId == unit.Id))
+                !unit.ChildUnits.Any() &&
+                unit.Employees.Any())
             .ToListAsync();
     }
 
-    // 16. Get units that have both children and employees
+    // 14
     public async Task<List<Unit>> GetUnitsWithChildrenAndEmployeesAsync()
     {
         return await _context.Units
             .AsNoTracking()
             .Where(unit =>
-                _context.Units.Any(child =>
-                    child.ParentUnitId == unit.Id)
-                &&
-                _context.Employees.Any(employee =>
-                    employee.UnitId == unit.Id))
+                unit.ChildUnits.Any() &&
+                unit.Employees.Any())
             .ToListAsync();
     }
 
-    // 17. Count direct children
-    //CountAsync()-ը database-ից ամբողջ Unit object-ները չի բերում, դրա համար .AsNoTracking() չեմ գրում
+    // 15
     public async Task<int> GetChildrenCountAsync(int unitId)
     {
         return await _context.Units
-            .CountAsync(unit =>
-                unit.ParentUnitId == unitId);
+            .CountAsync(unit => unit.ParentUnitId == unitId);
     }
 
-    // 18. Count direct employees, նույնը այստեղ է
+    // 16
     public async Task<int> GetEmployeeCountAsync(int unitId)
     {
         return await _context.Employees
-            .CountAsync(employee =>
-                employee.UnitId == unitId);
+            .CountAsync(employee => employee.UnitId == unitId);
     }
 
-    // 19. Search units by name
-    public async Task<List<Unit>> SearchUnitsByNameAsync(string searchText)
+    // 17
+    public async Task<List<Unit>> SearchUnitsByNameAsync(
+        string searchText)
     {
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            return new List<Unit>();
-        }
-
         searchText = searchText.Trim();
 
         return await _context.Units
             .AsNoTracking()
             .Where(unit =>
-                EF.Functions.ILike(unit.Name, $"%{searchText}%"))
+                EF.Functions.ILike(
+                    unit.Name,
+                    $"%{searchText}%"))
             .ToListAsync();
     }
 
-    // 20. Check if unit has children, AnyAsync() entity-ներ չի բերում memory և track չի անում դրանք
+    // 18
     public async Task<bool> HasChildrenAsync(int unitId)
     {
         return await _context.Units
-            .AnyAsync(unit =>
-                unit.ParentUnitId == unitId);
+            .AnyAsync(unit => unit.ParentUnitId == unitId);
     }
 
-    // 21. Check if unit has employees
+    // 19
     public async Task<bool> HasEmployeesAsync(int unitId)
     {
         return await _context.Employees
-            .AnyAsync(employee =>
-                employee.UnitId == unitId);
+            .AnyAsync(employee => employee.UnitId == unitId);
     }
-
-    // 22․ Get by Name 
-    public async Task<List<Employee>> GetEmployeesByNameAsync(string searchText)
-    {
-        if (string.IsNullOrWhiteSpace(searchText))
-        {
-            return new List<Employee>();
-        }
-
-        searchText = searchText.Trim();
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                EF.Functions.ILike(employee.FirstName, $"%{searchText}%") ||
-                EF.Functions.ILike(employee.LastName, $"%{searchText}%"))
-            .ToListAsync();
-    }
-
-    // 23․ Get by hire date range 1
-    public async Task<List<Employee>> GetEmployeesByHireDateRangeAsync1(DateTime from, DateTime to)
-    {
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                employee.HireDate >= from &&
-                employee.HireDate <= to)
-            .ToListAsync();
-    }
-
-    // 24․ Get by hire date range 2
-    public async Task<List<Employee>> GetEmployeesByHireDateRangeAsync2(DateTime from, DateTime to)
-    {
-        if (from > to)
-        {
-            throw new ArgumentException("'from' date cannot be later than 'to' date.");
-        }
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                employee.HireDate >= from &&
-                employee.HireDate <= to)
-            .ToListAsync();
-    }
-
-    // 25. Get employees by department
-    public async Task<List<Employee>> GetEmployeesByDepartmentAsync(
-        string department)
-    {
-        if (string.IsNullOrWhiteSpace(department))
-        {
-            return new List<Employee>();
-        }
-
-        department = department.Trim();
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                EF.Functions.ILike(employee.Department, department))
-            .ToListAsync();
-    }
-
-    // 26. Get employees of a unit by position
-    public async Task<List<Employee>> GetEmployeesByUnitAndPositionAsync(int unitId, string position)
-    {
-        if (string.IsNullOrWhiteSpace(position))
-        {
-            return new List<Employee>();
-        }
-
-        position = position.Trim();
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                employee.UnitId == unitId &&
-                EF.Functions.ILike(employee.Position, position))
-            .ToListAsync();
-    }
-
-    // 27. Get units by parent Id
-    public async Task<List<Unit>> GetUnitsByParentIdAsync(int? parentUnitId)
-    {
-        return await _context.Units
-            .AsNoTracking()
-            .Where(unit =>
-                unit.ParentUnitId == parentUnitId)
-            .ToListAsync();
-    }
-
-    // 28. Get employees by email
-    public async Task<List<Employee>> GetEmployeesByEmailAsync(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            return new List<Employee>();
-        }
-
-        email = email.Trim();
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                EF.Functions.ILike(employee.Email, $"%{email}%"))
-            .ToListAsync();
-    }
-
-    // 29. Get all active employees method overloading, 11ի նման բայց առանց պարամետրի
-    public async Task<List<Employee>> GetActiveEmployeesAsync()
-    {
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee => employee.IsActive)
-            .ToListAsync();
-    }
-
-    // 30. Get active employees by department
-    public async Task<List<Employee>> GetActiveEmployeesAsync(string department)
-    {
-        if (string.IsNullOrWhiteSpace(department))
-        {
-            return new List<Employee>();
-        }
-
-        department = department.Trim();
-
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee =>
-                employee.IsActive &&
-                EF.Functions.ILike(employee.Department, department))
-            .ToListAsync();
-    }
-
-    // 31. Get all inactive employees
-    public async Task<List<Employee>> GetInactiveEmployeesAsync()
-    {
-        return await _context.Employees
-            .AsNoTracking()
-            .Where(employee => !employee.IsActive)
-            .ToListAsync();
-    }
-
-    //1
-    public async Task<Unit> AddAsync(Unit unit)
-    {
-        await _context.Units.AddAsync(unit);
-
-        return unit;
-    }
-
-    //2
-    public Task UpdateAsync(Unit unit)
-    {
-        _context.Units.Update(unit);
-
-        return Task.CompletedTask;
-    }
-
-    //3
-    public Task DeleteAsync(Unit unit)
-    {
-        _context.Units.Remove(unit);
-
-        return Task.CompletedTask;
-    }
-
 }
 

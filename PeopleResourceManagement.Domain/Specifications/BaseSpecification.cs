@@ -1,13 +1,12 @@
 using System.Linq.Expressions;
-using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Domain.Specifications;
 
-public abstract class BaseSpecification : ISpecification
+public abstract class BaseSpecification<T> : ISpecification<T>
 {
-    public Expression<Func<Employee, bool>> Criteria { get; }
+    public Expression<Func<T, bool>> Criteria { get; }
 
-    protected BaseSpecification(Expression<Func<Employee, bool>> criteria)
+    protected BaseSpecification(Expression<Func<T, bool>> criteria)
     {
         Criteria = criteria;
     }

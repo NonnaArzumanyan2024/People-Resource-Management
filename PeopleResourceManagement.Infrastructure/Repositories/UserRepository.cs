@@ -5,23 +5,16 @@ using PeopleResourceManagement.Infrastructure.Data;
 
 namespace PeopleResourceManagement.Infrastructure.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository : GenericRepository<User>, IUserRepository
 {
-    private readonly AppDbContext _context;
-
     public UserRepository(AppDbContext context)
+        : base(context)
     {
-        _context = context;
     }
 
     public async Task<User?> GetByUsernameAsync(string username)
     {
         return await _context.Users
             .FirstOrDefaultAsync(user => user.Username == username);
-    }
-
-    public async Task AddAsync(User user)
-    {
-        await _context.Users.AddAsync(user);
     }
 }

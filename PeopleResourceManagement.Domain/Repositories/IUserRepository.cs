@@ -2,8 +2,7 @@ using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Domain.Repositories;
 
-public interface IUserRepository
+public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetByUsernameAsync(string username);
-    Task AddAsync(User user);
 }

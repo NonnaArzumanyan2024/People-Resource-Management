@@ -2,11 +2,9 @@ using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Domain.Repositories;
 
-public interface IUnitRepository
+public interface IUnitRepository : IRepository<Unit>
 {
-    Task<List<Unit>> GetAllAsync();
     Task<List<Unit>> GetAllWithEmployeesAsync();
-    Task<Unit?> GetByIdAsync(int id);
     Task<Unit?> GetRootAsync();
     Task<Unit?> GetParentAsync(int unitId);
     Task<List<Unit>> GetChildrenAsync(int parentUnitId);
@@ -25,8 +23,5 @@ public interface IUnitRepository
     Task<List<Unit>> SearchUnitsByNameAsync(string searchText);
     Task<bool> HasChildrenAsync(int unitId);
     Task<bool> HasEmployeesAsync(int unitId);
-    Task<Unit> AddAsync(Unit unit);
-    Task UpdateAsync(Unit unit);
-    Task DeleteAsync(Unit unit);
 }
 

@@ -1,3 +1,4 @@
+using PeopleResourceManagement.Application.DTOs;
 using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Application.Interfaces;
@@ -16,5 +17,7 @@ public interface IUnitService
     Task<List<Unit>> GetSiblingsAsync(int unitId);
     Task<List<Unit>> GetLeafUnitsAsync();
     Task<List<Unit>> GetUnitsWithChildrenAsync();
+
+    Task PatchAsync(int id, UnitPatchDto dto);
 }
 

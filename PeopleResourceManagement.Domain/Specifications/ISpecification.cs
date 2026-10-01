@@ -1,10 +1,8 @@
 using System.Linq.Expressions;
-using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Domain.Specifications;
 
-public interface ISpecification
+public interface ISpecification<T>
 {
-    Expression<Func<Employee, bool>> Criteria { get; }
+    Expression<Func<T, bool>> Criteria { get; }
 }
-

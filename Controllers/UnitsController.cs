@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PeopleResourceManagement.Application.DTOs;
 using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Application.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace People_Specification.Api.Controllers;
 
@@ -137,6 +138,46 @@ public class UnitsController : ControllerBase
         unit.ParentUnitId = dto.ParentUnitId;
 
         await _unitService.UpdateAsync(unit);
+
+        return NoContent();
+    }
+    
+    [HttpPatch("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Patch(
+        int id,
+        [FromBody] JsonPatchDocument<UnitPatchDto> patchDocument)
+    {
+        if (patchDocument == null)
+        {
+            return BadRequest();
+        }
+
+        var unit = await _unitService.GetByIdAsync(id);
+
+        if (unit == null)
+        {
+            return NotFound();
+        }
+
+        var children = await _unitService.GetChildrenAsync(id);
+
+        var dto = new UnitPatchDto
+        {
+            Name = unit.Name,
+            ChildUnitIds = children
+                .Select(child => child.Id)
+                .ToList()
+        };
+
+        patchDocument.ApplyTo(dto, ModelState);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        await _unitService.PatchAsync(id, dto);
 
         return NoContent();
     }

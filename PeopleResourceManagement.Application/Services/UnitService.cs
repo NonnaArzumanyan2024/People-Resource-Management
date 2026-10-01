@@ -1,6 +1,7 @@
 using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Repositories;
+using PeopleResourceManagement.Application.DTOs;
 
 namespace PeopleResourceManagement.Application.Services;
 
@@ -120,6 +121,69 @@ public class UnitService : IUnitService
     public async Task<List<Unit>> GetUnitsWithChildrenAsync()
     {
         return await _unitRepository.GetUnitsWithChildrenAsync();
+    }
+    
+    public async Task PatchAsync(int id, UnitPatchDto dto)
+    {
+        var unit = await _unitRepository.GetByIdAsync(id);
+
+        if (unit == null)
+        {
+            throw new InvalidOperationException("Unit not found.");
+        }
+
+        unit.Name = dto.Name;
+
+        var currentChildren = await _unitRepository.GetChildrenAsync(id);
+
+        var currentChildIds = currentChildren
+            .Select(child => child.Id)
+            .ToList();
+
+        var childrenToAdd = dto.ChildUnitIds
+            .Except(currentChildIds)
+            .ToList();
+
+        var childrenToRemove = currentChildIds
+            .Except(dto.ChildUnitIds)
+            .ToList();
+
+        foreach (var childId in childrenToAdd)
+        {
+            if (childId == id)
+            {
+                throw new InvalidOperationException(
+                    "Unit cannot be its own child.");
+            }
+
+            var child = await _unitRepository.GetByIdAsync(childId);
+
+            if (child == null)
+            {
+                throw new InvalidOperationException(
+                    $"Child unit with id {childId} does not exist.");
+            }
+
+            child.ParentUnitId = id;
+
+            await _unitRepository.UpdateAsync(child);
+        }
+
+        foreach (var childId in childrenToRemove)
+        {
+            var child = await _unitRepository.GetByIdAsync(childId);
+
+            if (child != null)
+            {
+                child.ParentUnitId = null;
+
+                await _unitRepository.UpdateAsync(child);
+            }
+        }
+
+        await _unitRepository.UpdateAsync(unit);
+
+        await _unitOfWork.SaveChangesAsync();
     }
 }
 
