@@ -2,6 +2,7 @@ using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Repositories;
 using PeopleResourceManagement.Application.DTOs;
+using PeopleResourceManagement.Domain.UnitOfWork;
 
 namespace PeopleResourceManagement.Application.Services;
 
@@ -9,10 +10,47 @@ public class UnitService : IUnitService
 {
     private readonly IUnitRepository _unitRepository;
     private readonly IUnitOfWork _unitOfWork;
+    
+    public async Task<UnitPatchDto?> GetPatchDtoAsync(int id)
+    {
+        var unit = await _unitRepository.GetByIdAsync(id);
 
-    public UnitService(
-        IUnitRepository unitRepository,
-        IUnitOfWork unitOfWork)
+        if (unit == null)
+        {
+            return null;
+        }
+
+        var children = await _unitRepository.GetChildrenAsync(id);
+
+        return new UnitPatchDto
+        {
+            Name = unit.Name,
+            ChildUnitIds = children
+                .Select(child => child.Id)
+                .ToList()
+        };
+    }
+    
+    public async Task UpdateUnitAsync(int id, UnitPatchDto dto)
+    {
+        var unit = await _unitRepository.GetByIdAsync(id);
+
+        if (unit == null)
+        {
+            throw new KeyNotFoundException();
+        }
+
+        if (dto.ChildUnitIds.Contains(id))
+        {
+            throw new InvalidOperationException("A unit cannot be its own child.");
+        }
+
+        unit.Name = dto.Name;
+        await _unitRepository.UpdateAsync(unit);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public UnitService(IUnitRepository unitRepository, IUnitOfWork unitOfWork)
     {
         _unitRepository = unitRepository;
         _unitOfWork = unitOfWork;
@@ -22,6 +60,7 @@ public class UnitService : IUnitService
     {
         return await _unitRepository.GetAllAsync();
     }
+    
     public async Task<List<Unit>> GetAllWithEmployeesAsync()
     {
         return await _unitRepository.GetAllWithEmployeesAsync();
@@ -55,9 +94,7 @@ public class UnitService : IUnitService
         }
 
         var addedUnit = await _unitRepository.AddAsync(unit);
-
         await _unitOfWork.SaveChangesAsync();
-
         return addedUnit;    
     }
 
@@ -95,8 +132,7 @@ public class UnitService : IUnitService
 
         if (children.Count > 0)
         {
-            throw new InvalidOperationException(
-                "Unit cannot be deleted because it has child units.");
+            throw new InvalidOperationException("Unit cannot be deleted because it has child units.");
         }
 
         await _unitRepository.DeleteAsync(unit);
@@ -123,7 +159,7 @@ public class UnitService : IUnitService
         return await _unitRepository.GetUnitsWithChildrenAsync();
     }
     
-    public async Task PatchAsync(int id, UnitPatchDto dto)
+    public async Task UpdateUnit(int id, UnitPatchDto dto)
     {
         var unit = await _unitRepository.GetByIdAsync(id);
 
@@ -152,20 +188,17 @@ public class UnitService : IUnitService
         {
             if (childId == id)
             {
-                throw new InvalidOperationException(
-                    "Unit cannot be its own child.");
+                throw new InvalidOperationException("Unit cannot be its own child.");
             }
 
             var child = await _unitRepository.GetByIdAsync(childId);
 
             if (child == null)
             {
-                throw new InvalidOperationException(
-                    $"Child unit with id {childId} does not exist.");
+                throw new InvalidOperationException($"Child unit with id {childId} does not exist.");
             }
 
             child.ParentUnitId = id;
-
             await _unitRepository.UpdateAsync(child);
         }
 
@@ -176,13 +209,11 @@ public class UnitService : IUnitService
             if (child != null)
             {
                 child.ParentUnitId = null;
-
                 await _unitRepository.UpdateAsync(child);
             }
         }
 
         await _unitRepository.UpdateAsync(unit);
-
         await _unitOfWork.SaveChangesAsync();
     }
 }

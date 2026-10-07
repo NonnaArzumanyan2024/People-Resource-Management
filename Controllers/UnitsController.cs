@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace People_Specification.Api.Controllers;
 
-
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -17,22 +16,17 @@ public class UnitsController : ControllerBase
     private readonly IOrganizationTreeHtmlExportService _htmlExportService;
     private readonly IOrganizationTreeExcelExportService _excelExportService;
 
-    public UnitsController(
-    IUnitService unitService,
-    IOrganizationTreeHtmlExportService htmlExportService,
-    IOrganizationTreeExcelExportService excelExportService)
+    public UnitsController(IUnitService unitService, IOrganizationTreeHtmlExportService htmlExportService, IOrganizationTreeExcelExportService excelExportService)
     {
         _unitService = unitService;
         _htmlExportService = htmlExportService;
         _excelExportService = excelExportService;
     }
 
-
     [HttpGet]
     public async Task<ActionResult<List<UnitDto>>> GetAll()
     {
         var units = await _unitService.GetAllAsync();
-
         var result = units.Select(unit => new UnitDto
         {
             Id = unit.Id,
@@ -117,10 +111,7 @@ public class UnitsController : ControllerBase
             ParentUnitId = createdUnit.ParentUnitId
         };
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = result.Id },
-            result);
+        return CreatedAtAction(nameof(GetById),new { id = result.Id }, result);
     }
 
     [HttpPut("{id}")]
@@ -136,39 +127,25 @@ public class UnitsController : ControllerBase
 
         unit.Name = dto.Name;
         unit.ParentUnitId = dto.ParentUnitId;
-
         await _unitService.UpdateAsync(unit);
-
         return NoContent();
     }
     
     [HttpPatch("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Patch(
-        int id,
-        [FromBody] JsonPatchDocument<UnitPatchDto> patchDocument)
+    public async Task<IActionResult> UpdateUnit(int id, [FromBody] JsonPatchDocument<UnitPatchDto> patchDocument)
     {
         if (patchDocument == null)
         {
             return BadRequest();
         }
 
-        var unit = await _unitService.GetByIdAsync(id);
+        var dto = await _unitService.GetPatchDtoAsync(id);
 
-        if (unit == null)
+        if (dto == null)
         {
             return NotFound();
         }
-
-        var children = await _unitService.GetChildrenAsync(id);
-
-        var dto = new UnitPatchDto
-        {
-            Name = unit.Name,
-            ChildUnitIds = children
-                .Select(child => child.Id)
-                .ToList()
-        };
 
         patchDocument.ApplyTo(dto, ModelState);
 
@@ -177,8 +154,7 @@ public class UnitsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        await _unitService.PatchAsync(id, dto);
-
+        await _unitService.UpdateUnitAsync(id, dto);
         return NoContent();
     }
 
@@ -187,7 +163,6 @@ public class UnitsController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _unitService.DeleteAsync(id);
-
         return NoContent();
     }
 
@@ -241,7 +216,6 @@ public class UnitsController : ControllerBase
         return Ok(result);
     }
 
-
     [HttpGet("with-children")]
     public async Task<ActionResult<List<UnitDto>>> GetUnitsWithChildren()
     {
@@ -261,29 +235,19 @@ public class UnitsController : ControllerBase
     public async Task<IActionResult> ExportTreeToHtml()
     {
         var units = await _unitService.GetAllWithEmployeesAsync();
-
         var html = _htmlExportService.ExportToHtml(units);
-
         var bytes = System.Text.Encoding.UTF8.GetBytes(html);
 
-        return File(
-            bytes,
-            "text/html",
-            "organization-tree.html");
+        return File(bytes,"text/html","organization-tree.html");
     }
 
     [HttpGet("export-tree-excel")]
     public async Task<IActionResult> ExportTreeToExcel()
     {
         var units = await _unitService.GetAllWithEmployeesAsync();
-
         var excel = _excelExportService.ExportToExcel(units);
 
-        return File(
-            excel,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "organization-tree.xlsx");
+        return File(excel,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","organization-tree.xlsx");
     }
-
 }
 

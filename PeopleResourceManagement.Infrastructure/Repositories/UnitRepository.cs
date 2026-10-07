@@ -213,5 +213,14 @@ public class UnitRepository : GenericRepository<Unit>, IUnitRepository
         return await _context.Employees
             .AnyAsync(employee => employee.UnitId == unitId);
     }
+    
+    //20
+    public async Task<List<Unit>> GetEmptyUnitsAsync()
+    {
+        return await _context.Units
+            .Where(unit => !unit.Employees.Any())
+            .ToListAsync();
+    }
+    
 }
 

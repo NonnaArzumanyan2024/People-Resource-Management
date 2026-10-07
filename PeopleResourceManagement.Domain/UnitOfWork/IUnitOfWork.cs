@@ -1,4 +1,4 @@
-namespace PeopleResourceManagement.Application.Interfaces;
+namespace PeopleResourceManagement.Domain.UnitOfWork;
 
 public interface IUnitOfWork
 {

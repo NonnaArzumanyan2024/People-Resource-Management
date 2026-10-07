@@ -23,5 +23,5 @@ public interface IUnitRepository : IRepository<Unit>
     Task<List<Unit>> SearchUnitsByNameAsync(string searchText);
     Task<bool> HasChildrenAsync(int unitId);
     Task<bool> HasEmployeesAsync(int unitId);
+    Task<List<Unit>> GetEmptyUnitsAsync();
 }
-

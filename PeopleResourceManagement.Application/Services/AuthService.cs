@@ -2,6 +2,7 @@ using PeopleResourceManagement.Application.DTOs;
 using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Domain.Repositories;
+using PeopleResourceManagement.Domain.UnitOfWork;
 
 namespace PeopleResourceManagement.Application.Services;
 
@@ -13,12 +14,7 @@ public class AuthService : IAuthService
     private readonly IJwtService _jwtService;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AuthService(
-        IEmployeeRepository employeeRepository,
-        IUserRepository userRepository,
-        IPasswordHasher passwordHasher,
-        IJwtService jwtService,
-        IUnitOfWork unitOfWork)
+    public AuthService(IEmployeeRepository employeeRepository, IUserRepository userRepository, IPasswordHasher passwordHasher, IJwtService jwtService, IUnitOfWork unitOfWork)
     {
         _employeeRepository = employeeRepository;
         _userRepository = userRepository;
@@ -29,8 +25,7 @@ public class AuthService : IAuthService
 
     public async Task RegisterAsync(RegisterRequestDto request)
     {
-        var existingUser = await _userRepository
-            .GetByUsernameAsync(request.Username);
+        var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
 
         if (existingUser is not null)
         {
@@ -62,15 +57,13 @@ public class AuthService : IAuthService
         };
 
         await _userRepository.AddAsync(user);
-
         await _unitOfWork.SaveChangesAsync();
         
     }
 
     public async Task<string?> LoginAsync(LoginRequestDto request)
     {
-        var user = await _userRepository
-            .GetByUsernameAsync(request.Username);
+        var user = await _userRepository.GetByUsernameAsync(request.Username);
 
         if (user is null)
         {
@@ -82,9 +75,7 @@ public class AuthService : IAuthService
             return null;
         }
 
-        var isPasswordValid = _passwordHasher.VerifyPassword(
-            request.Password,
-            user.PasswordHash);
+        var isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
 
         if (!isPasswordValid)
         {

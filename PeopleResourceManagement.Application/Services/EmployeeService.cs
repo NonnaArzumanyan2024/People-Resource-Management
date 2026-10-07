@@ -2,17 +2,16 @@ using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Repositories;
 using PeopleResourceManagement.Domain.Specifications.Employees;
+using PeopleResourceManagement.Domain.UnitOfWork;
 
 namespace PeopleResourceManagement.Application.Services;
 
 public class EmployeeService : IEmployeeService
 {
-    private readonly IEmployeeRepository _repository;
+    private readonly IRepository<Employee> _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public EmployeeService(
-        IEmployeeRepository repository,
-        IUnitOfWork unitOfWork)
+    public EmployeeService(IEmployeeRepository repository, IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
@@ -31,9 +30,7 @@ public class EmployeeService : IEmployeeService
     public async Task<Employee> AddAsync(Employee employee)
     {
         var addedEmployee = await _repository.AddAsync(employee);
-
         await _unitOfWork.SaveChangesAsync();
-
         return addedEmployee;
     }
 
@@ -53,42 +50,36 @@ public class EmployeeService : IEmployeeService
         }
 
         await _repository.DeleteAsync(employee);
-
         await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<List<Employee>> GetActiveEmployeesAsync()
     {
         var specification = new ActiveEmployeesSpecification();
-
         return await _repository.GetBySpecificationAsync(specification);
     }
 
     public async Task<List<Employee>> GetInactiveEmployeesAsync()
     {
         var specification = new InactiveEmployeesSpecification();
-
         return await _repository.GetBySpecificationAsync(specification);
     }
 
     public async Task<List<Employee>> GetByDepartmentAsync(string department)
     {
         var specification = new EmployeesByDepartmentSpecification(department);
-
         return await _repository.GetBySpecificationAsync(specification);
     }
 
     public async Task<List<Employee>> GetByPositionAsync(string position)
     {
         var specification = new EmployeesByPositionSpecification(position);
-
         return await _repository.GetBySpecificationAsync(specification);
     }
 
     public async Task<List<Employee>> GetByHireDateAsync(DateTime hireDate)
     {
         var specification = new EmployeesByHireDateSpecification(hireDate);
-
         return await _repository.GetBySpecificationAsync(specification);
     }
 }

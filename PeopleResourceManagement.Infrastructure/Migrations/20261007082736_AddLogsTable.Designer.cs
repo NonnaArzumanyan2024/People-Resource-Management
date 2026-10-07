@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PeopleResourceManagement.Infrastructure.Data;
@@ -11,9 +12,11 @@ using PeopleResourceManagement.Infrastructure.Data;
 namespace PeopleResourceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007082736_AddLogsTable")]
+    partial class AddLogsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,7 +83,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Log", b =>
@@ -108,7 +111,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Logs", (string)null);
+                    b.ToTable("Logs");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Unit", b =>
@@ -139,7 +142,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("ParentUnitId");
 
-                    b.ToTable("Units", (string)null);
+                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.User", b =>
@@ -180,7 +183,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Employee", b =>

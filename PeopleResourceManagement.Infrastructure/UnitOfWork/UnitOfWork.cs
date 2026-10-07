@@ -1,4 +1,4 @@
-using PeopleResourceManagement.Application.Interfaces;
+using PeopleResourceManagement.Domain.UnitOfWork;
 using PeopleResourceManagement.Infrastructure.Data;
 
 namespace PeopleResourceManagement.Infrastructure.UnitOfWork;

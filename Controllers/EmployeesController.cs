@@ -16,10 +16,7 @@ public class EmployeesController : ControllerBase
     private readonly IMapper _mapper;
     private readonly IEmployeeExportService _employeeExportService;
 
-    public EmployeesController(
-        IEmployeeService service,
-        IMapper mapper,
-        IEmployeeExportService employeeExportService)
+    public EmployeesController(IEmployeeService service, IMapper mapper, IEmployeeExportService employeeExportService)
     {
         _service = service;
         _mapper = mapper;
@@ -31,9 +28,7 @@ public class EmployeesController : ControllerBase
     public async Task<ActionResult<List<EmployeeDto>>> GetAll()
     {
         var employees = await _service.GetAllAsync();
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
@@ -45,9 +40,7 @@ public class EmployeesController : ControllerBase
 
         if (role != "Admin")
         {
-            if (employeeIdClaim == null ||
-                !int.TryParse(employeeIdClaim, out var employeeId) ||
-                employeeId != id)
+            if (employeeIdClaim == null || !int.TryParse(employeeIdClaim, out var employeeId) || employeeId != id)
             {
                 return Forbid();
             }
@@ -61,7 +54,6 @@ public class EmployeesController : ControllerBase
         }
 
         var employeeDto = _mapper.Map<EmployeeDto>(employee);
-
         return Ok(employeeDto);
     }
 
@@ -70,11 +62,8 @@ public class EmployeesController : ControllerBase
     public async Task<ActionResult<EmployeeDto>> Create(EmployeeDto employeeDto)
     {
         var employee = _mapper.Map<Employee>(employeeDto);
-
         var createdEmployee = await _service.AddAsync(employee);
-
         var createdEmployeeDto = _mapper.Map<EmployeeDto>(createdEmployee);
-
         return Ok(createdEmployeeDto);
     }
 
@@ -97,7 +86,6 @@ public class EmployeesController : ControllerBase
         }
 
         await _service.UpdateAsync(employee);
-
         return NoContent();
     }
 
@@ -113,7 +101,6 @@ public class EmployeesController : ControllerBase
         }
 
         await _service.DeleteAsync(id);
-
         return NoContent();
     }
 
@@ -122,9 +109,7 @@ public class EmployeesController : ControllerBase
     public async Task<ActionResult<List<EmployeeDto>>> GetActiveEmployees()
     {
         var employees = await _service.GetActiveEmployeesAsync();
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
@@ -133,45 +118,34 @@ public class EmployeesController : ControllerBase
     public async Task<ActionResult<List<EmployeeDto>>> GetInactiveEmployees()
     {
         var employees = await _service.GetInactiveEmployeesAsync();
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
     [HttpGet("department/{department}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<EmployeeDto>>> GetByDepartment(
-        string department)
+    public async Task<ActionResult<List<EmployeeDto>>> GetByDepartment(string department)
     {
         var employees = await _service.GetByDepartmentAsync(department);
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
     [HttpGet("position/{position}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<EmployeeDto>>> GetByPosition(
-        string position)
+    public async Task<ActionResult<List<EmployeeDto>>> GetByPosition(string position)
     {
         var employees = await _service.GetByPositionAsync(position);
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
     [HttpGet("hire-date")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<EmployeeDto>>> GetByHireDate(
-        [FromQuery] DateTime hireDate)
+    public async Task<ActionResult<List<EmployeeDto>>> GetByHireDate([FromQuery] DateTime hireDate)
     {
         var employees = await _service.GetByHireDateAsync(hireDate);
-
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
-
         return Ok(employeeDtos);
     }
 
@@ -182,10 +156,7 @@ public class EmployeesController : ControllerBase
         var employees = await _service.GetAllAsync();
         var fileBytes = _employeeExportService.ExportToExcel(employees);
 
-        return File(
-            fileBytes,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "employees.xlsx");
+        return File(fileBytes,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","employees.xlsx");
     }
 
     [HttpGet("export/html")]
@@ -195,12 +166,7 @@ public class EmployeesController : ControllerBase
         var employees = await _service.GetAllAsync();
         var html = _employeeExportService.ExportToHtml(employees);
 
-        return File(
-
-        System.Text.Encoding.UTF8.GetBytes(html),
-        "text/html",
-        "employees.html");
+        return File(System.Text.Encoding.UTF8.GetBytes(html),"text/html","employees.html");
     }
-    
 }  
 

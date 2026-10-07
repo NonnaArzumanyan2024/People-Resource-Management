@@ -11,37 +11,35 @@ using PeopleResourceManagement.Domain.Repositories;
 using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Application.Services;
 using PeopleResourceManagement.Infrastructure.UnitOfWork;
+using PeopleResourceManagement.Application.Units.Queries.GetEmptyUnits;
+using PeopleResourceManagement.Domain.UnitOfWork;
+using PeopleResourceManagement.Application.Jobs;
+using People_Specification.Api.Workers;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ILogRepository, LogRepository>();
+builder.Services.AddTransient<IPasswordHasher, PasswordHasher>();
+builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeExportService, EmployeeExportService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
-
-builder.Services.AddScoped<
-    IOrganizationTreeHtmlExportService,
-    OrganizationTreeHtmlExportService>();
-
-builder.Services.AddScoped<
-    IOrganizationTreeExcelExportService,
-    OrganizationTreeExcelExportService>();
+builder.Services.AddTransient<IOrganizationTreeHtmlExportService, OrganizationTreeHtmlExportService>();
+builder.Services.AddTransient<IOrganizationTreeExcelExportService, OrganizationTreeExcelExportService>();
+builder.Services.AddScoped<CheckEmptyUnitsJob>();
+builder.Services.AddHostedService<UnitMonitoringWorker>();
     
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -53,18 +51,15 @@ builder.Services.AddAuthentication("Bearer")
             ValidIssuer = builder.Configuration["JWT_ISSUER"],
             ValidAudience = builder.Configuration["JWT_AUDIENCE"],
 
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    builder.Configuration["JWT_KEY"]
-                    ?? throw new InvalidOperationException(
-                        "JWT_KEY is not configured.")))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT_KEY"]
+                                                                               ?? throw new InvalidOperationException(
+                                                                                   "JWT_KEY is not configured.")))
         };
     });
 
 builder.Services.AddAuthorization();
 
-builder.Services
-    .AddControllers()
+builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
@@ -72,9 +67,7 @@ builder.Services
     })
     .AddNewtonsoftJson();
 
-builder.Services.AddAutoMapper(
-    cfg => { },
-    typeof(EmployeeProfile));
+builder.Services.AddAutoMapper(cfg => { }, typeof(EmployeeProfile));
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -106,6 +99,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetEmptyUnitsQuery).Assembly));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -115,10 +110,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

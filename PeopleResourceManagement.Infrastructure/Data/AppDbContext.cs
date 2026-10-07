@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Unit> Units { get; set; }
+    public DbSet<Log> Logs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,12 @@ public class AppDbContext : DbContext
             .HasOne(user => user.Employee)
             .WithMany()
             .HasForeignKey(user => user.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Log>()
+            .HasOne(log => log.Unit)
+            .WithMany()
+            .HasForeignKey(log => log.UnitId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

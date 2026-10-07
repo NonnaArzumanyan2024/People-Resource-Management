@@ -1,5 +1,3 @@
-// Data Transfer Object
-
 namespace PeopleResourceManagement.Application.DTOs;
 
 public class EmployeeDto
