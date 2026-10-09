@@ -1,55 +1,47 @@
-using MediatR;
-using PeopleResourceManagement.Application.Logs.Commands.CreateOrUpdateUnitLog;
-using PeopleResourceManagement.Application.Units.Queries.GetEmptyUnits;
-using Microsoft.Extensions.Logging;
-using PeopleResourceManagement.Application.Units.Queries.GetPreviouslyEmptyUnitsWithEmployees;
+using PeopleResourceManagement.Domain.Entities;
+using PeopleResourceManagement.Domain.Repositories;
+using PeopleResourceManagement.Domain.UnitOfWork;
 
 namespace PeopleResourceManagement.Application.Jobs;
 
 public class CheckEmptyUnitsJob
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<CheckEmptyUnitsJob> _logger;
+    private readonly IUnitRepository _unitRepository;
+    private readonly ILogRepository _logRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CheckEmptyUnitsJob(IMediator mediator, ILogger<CheckEmptyUnitsJob> logger)
+    public CheckEmptyUnitsJob(
+        IUnitRepository unitRepository,
+        ILogRepository logRepository,
+        IUnitOfWork unitOfWork)
     {
-        _mediator = mediator;
-        _logger = logger;
+        _unitRepository = unitRepository;
+        _logRepository = logRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task ExecuteAsync(
+        CancellationToken cancellationToken)
     {
-        var emptyUnits = await _mediator.Send(
-            new GetEmptyUnitsQuery(),
-            cancellationToken);
+        var units =
+            await _unitRepository.GetAllWithEmployeesAsync();
 
-        foreach (var unit in emptyUnits)
+        foreach (var unit in units)
         {
-            var command = new CreateOrUpdateUnitLogCommand(
-                unit.Id,
-                "Unit has no employees");
-
-            await _mediator.Send(
-                command,
-                cancellationToken);
-        }
-
-        var unitsWithNewEmployees = await _mediator.Send(new GetPreviouslyEmptyUnitsWithEmployeesQuery(), cancellationToken);
-
-        foreach (var unit in unitsWithNewEmployees)
-        {
-            foreach (var employee in unit.Employees)
+            if (!unit.Employees.Any())
             {
-                _logger.LogInformation(
-                    "Employee {FirstName} {LastName} is now in Unit {UnitId} - {UnitName}",
-                    employee.FirstName,
-                    employee.LastName,
-                    unit.Id,
-                    unit.Name);
-            }
+                var log = new Log
+                {
+                    UnitId = unit.Id,
+                    Descriptor = "Unit has no employees",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            var command = new CreateOrUpdateUnitLogCommand(unit.Id,"Unit now has employees");
-            await _mediator.Send(command, cancellationToken);
+                await _logRepository.AddAsync(log);
+            }
         }
+
+        await _unitOfWork.SaveChangesAsync();
     }
 }

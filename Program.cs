@@ -38,6 +38,10 @@ builder.Services.AddTransient<IOrganizationTreeHtmlExportService, OrganizationTr
 builder.Services.AddTransient<IOrganizationTreeExcelExportService, OrganizationTreeExcelExportService>();
 builder.Services.AddScoped<CheckEmptyUnitsJob>();
 builder.Services.AddHostedService<UnitMonitoringWorker>();
+builder.Services.AddScoped<ILogRepository, LogRepository>();
+builder.Services.AddScoped<CheckEmptyUnitsJob>();
+builder.Services.AddScoped<ILogRepository, LogRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     
 builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     {

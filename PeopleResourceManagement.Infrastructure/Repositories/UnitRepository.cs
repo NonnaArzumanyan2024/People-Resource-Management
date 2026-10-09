@@ -221,6 +221,5 @@ public class UnitRepository : GenericRepository<Unit>, IUnitRepository
             .Where(unit => !unit.Employees.Any())
             .ToListAsync();
     }
-    
 }
 
