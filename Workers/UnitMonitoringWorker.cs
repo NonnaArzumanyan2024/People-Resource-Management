@@ -13,16 +13,13 @@ public class UnitMonitoringWorker : BackgroundService
 
     private const long UnitMonitoringLockKey = 1001;
 
-    public UnitMonitoringWorker(
-        IServiceProvider serviceProvider,
-        ILogger<UnitMonitoringWorker> logger)
+    public UnitMonitoringWorker(IServiceProvider serviceProvider, ILogger<UnitMonitoringWorker> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(
-        CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("UnitMonitoringWorker started");
 
@@ -30,43 +27,26 @@ public class UnitMonitoringWorker : BackgroundService
         {
             try
             {
-                using var scope = _serviceProvider.CreateScope();
-
-                var job =
-                    scope.ServiceProvider
-                        .GetRequiredService<CheckEmptyUnitsJob>();
-
-                var distributedLockService =
-                    scope.ServiceProvider
-                        .GetRequiredService<IDistributedLockService>();
-
-                var lockAcquired =
-                    await distributedLockService.TryAcquireAsync(
-                        UnitMonitoringLockKey,
-                        stoppingToken);
+                await using var scope = _serviceProvider.CreateAsyncScope();
+                var job = scope.ServiceProvider.GetRequiredService<CheckEmptyUnitsJob>();
+                var distributedLockService = scope.ServiceProvider.GetRequiredService<IDistributedLockService>();
+                var lockAcquired = await distributedLockService.TryAcquireAsync(UnitMonitoringLockKey, stoppingToken);
 
                 if (!lockAcquired)
                 {
-                    _logger.LogInformation(
-                        "Unit monitoring skipped because another replica owns the lock.");
+                    _logger.LogInformation("Unit monitoring skipped because another replica owns the lock.");
                 }
                 else
                 {
                     try
                     {
                         await job.ExecuteAsync(stoppingToken);
-
-                        _logger.LogInformation(
-                            "Unit monitoring job completed successfully");
+                        _logger.LogInformation("Unit monitoring job completed successfully");
                     }
                     finally
                     {
-                        await distributedLockService.ReleaseAsync(
-                            UnitMonitoringLockKey,
-                            CancellationToken.None);
-
-                        _logger.LogInformation(
-                            "Unit monitoring distributed lock released");
+                        await distributedLockService.ReleaseAsync(UnitMonitoringLockKey, CancellationToken.None);
+                        _logger.LogInformation("Unit monitoring distributed lock released");
                     }
                 }
             }
@@ -77,16 +57,12 @@ public class UnitMonitoringWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error occurred while running unit monitoring job");
+                _logger.LogError(ex,"Error occurred while running unit monitoring job");
             }
 
             try
             {
-                await Task.Delay(
-                    TimeSpan.FromMinutes(1),
-                    stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
