@@ -3,17 +3,17 @@ using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using PeopleResourceManagement.Infrastructure.Data;
+using PeopleResourceManagement.Application.Interfaces;
+using PeopleResourceManagement.Application.Jobs;
 using PeopleResourceManagement.Application.Mappings;
+using PeopleResourceManagement.Application.Services;
+using PeopleResourceManagement.Application.Units.Queries.GetEmptyUnits;
+using PeopleResourceManagement.Domain.Repositories;
+using PeopleResourceManagement.Domain.UnitOfWork;
+using PeopleResourceManagement.Infrastructure.Data;
 using PeopleResourceManagement.Infrastructure.Repositories;
 using PeopleResourceManagement.Infrastructure.Services;
-using PeopleResourceManagement.Domain.Repositories;
-using PeopleResourceManagement.Application.Interfaces;
-using PeopleResourceManagement.Application.Services;
 using PeopleResourceManagement.Infrastructure.UnitOfWork;
-using PeopleResourceManagement.Application.Units.Queries.GetEmptyUnits;
-using PeopleResourceManagement.Domain.UnitOfWork;
-using PeopleResourceManagement.Application.Jobs;
 using People_Specification.Api.Workers;
 
 Env.Load();
@@ -42,6 +42,7 @@ builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<CheckEmptyUnitsJob>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddTransient<IDistributedLockService, PostgresDistributedLockService>();
     
 builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     {

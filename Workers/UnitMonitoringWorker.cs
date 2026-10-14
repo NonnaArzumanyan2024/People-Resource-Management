@@ -1,17 +1,23 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Application.Jobs;
 
 namespace People_Specification.Api.Workers;
 
 public class UnitMonitoringWorker : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<UnitMonitoringWorker> _logger;
 
+    private const long UnitMonitoringLockKey = 1001;
+
     public UnitMonitoringWorker(
-        IServiceScopeFactory scopeFactory,
+        IServiceProvider serviceProvider,
         ILogger<UnitMonitoringWorker> logger)
     {
-        _scopeFactory = scopeFactory;
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
@@ -24,15 +30,45 @@ public class UnitMonitoringWorker : BackgroundService
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
+                using var scope = _serviceProvider.CreateScope();
 
-                var job = scope.ServiceProvider
-                    .GetRequiredService<CheckEmptyUnitsJob>();
+                var job =
+                    scope.ServiceProvider
+                        .GetRequiredService<CheckEmptyUnitsJob>();
 
-                await job.ExecuteAsync(stoppingToken);
+                var distributedLockService =
+                    scope.ServiceProvider
+                        .GetRequiredService<IDistributedLockService>();
 
-                _logger.LogInformation(
-                    "Unit monitoring job completed successfully");
+                var lockAcquired =
+                    await distributedLockService.TryAcquireAsync(
+                        UnitMonitoringLockKey,
+                        stoppingToken);
+
+                if (!lockAcquired)
+                {
+                    _logger.LogInformation(
+                        "Unit monitoring skipped because another replica owns the lock.");
+                }
+                else
+                {
+                    try
+                    {
+                        await job.ExecuteAsync(stoppingToken);
+
+                        _logger.LogInformation(
+                            "Unit monitoring job completed successfully");
+                    }
+                    finally
+                    {
+                        await distributedLockService.ReleaseAsync(
+                            UnitMonitoringLockKey,
+                            CancellationToken.None);
+
+                        _logger.LogInformation(
+                            "Unit monitoring distributed lock released");
+                    }
+                }
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
@@ -43,12 +79,20 @@ public class UnitMonitoringWorker : BackgroundService
             {
                 _logger.LogError(
                     ex,
-                    "Error while monitoring units");
+                    "Error occurred while running unit monitoring job");
             }
 
-            await Task.Delay(
-                TimeSpan.FromSeconds(30),
-                stoppingToken);
+            try
+            {
+                await Task.Delay(
+                    TimeSpan.FromMinutes(1),
+                    stoppingToken);
+            }
+            catch (OperationCanceledException)
+                when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
         }
 
         _logger.LogInformation("UnitMonitoringWorker stopped");
