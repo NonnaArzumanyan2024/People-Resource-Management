@@ -221,5 +221,24 @@ public class UnitRepository : GenericRepository<Unit>, IUnitRepository
             .Where(unit => !unit.Employees.Any())
             .ToListAsync();
     }
+    
+    //21
+    public async Task<bool> ExistsByNameAsync(string name)
+    {
+        name = name.Trim();
+
+        return await _context.Units.AnyAsync(unit => EF.Functions.ILike(unit.Name, name));
+    }
+    
+    //22
+    public async Task<bool> ExistsByNameAsync(string name, int excludeUnitId)
+    {
+        name = name.Trim();
+
+        return await _context.Units
+            .AnyAsync(unit =>
+                unit.Id != excludeUnitId &&
+                EF.Functions.ILike(unit.Name, name));
+    }
 }
 

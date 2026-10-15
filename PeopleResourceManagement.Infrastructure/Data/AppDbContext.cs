@@ -18,12 +18,21 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasPostgresExtension("citext");
 
         modelBuilder.Entity<Unit>()
             .HasOne(unit => unit.ParentUnit)
             .WithMany(unit => unit.ChildUnits)
             .HasForeignKey(unit => unit.ParentUnitId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Unit>()
+            .Property(unit => unit.Name)
+            .HasColumnType("citext");
+
+        modelBuilder.Entity<Unit>()
+            .HasIndex(unit => unit.Name)
+            .IsUnique();
 
         modelBuilder.Entity<Employee>()
             .HasOne(employee => employee.Unit)

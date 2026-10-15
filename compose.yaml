@@ -31,6 +31,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=people_specification_db;Username=postgres;Password=postgres
+      JWT_KEY: ${JWT_KEY:?JWT_KEY is required}
+      JWT_ISSUER: ${JWT_ISSUER:?JWT_ISSUER is required}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:?JWT_AUDIENCE is required}
 
     depends_on:
       postgres:

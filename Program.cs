@@ -15,6 +15,7 @@ using PeopleResourceManagement.Infrastructure.Repositories;
 using PeopleResourceManagement.Infrastructure.Services;
 using PeopleResourceManagement.Infrastructure.UnitOfWork;
 using People_Specification.Api.Workers;
+using People_Specification.Api.Exceptions;
 
 Env.Load();
 
@@ -43,6 +44,8 @@ builder.Services.AddScoped<CheckEmptyUnitsJob>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IDistributedLockService, PostgresDistributedLockService>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
     
 builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     {
@@ -107,6 +110,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetEmptyUnitsQuery).Assembly));
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

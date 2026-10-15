@@ -24,4 +24,6 @@ public interface IUnitRepository : IRepository<Unit>
     Task<bool> HasChildrenAsync(int unitId);
     Task<bool> HasEmployeesAsync(int unitId);
     Task<List<Unit>> GetEmptyUnitsAsync();
+    Task<bool> ExistsByNameAsync(string name);
+    Task<bool> ExistsByNameAsync(string name, int excludeUnitId);
 }

@@ -20,6 +20,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Employee", b =>
@@ -80,7 +81,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Log", b =>
@@ -108,7 +109,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Logs", (string)null);
+                    b.ToTable("Logs");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Unit", b =>
@@ -127,7 +128,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("citext");
 
                     b.Property<int?>("ParentUnitId")
                         .HasColumnType("integer");
@@ -137,9 +138,12 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.HasIndex("ParentUnitId");
 
-                    b.ToTable("Units", (string)null);
+                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.User", b =>
@@ -180,7 +184,7 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("PeopleResourceManagement.Domain.Entities.Employee", b =>

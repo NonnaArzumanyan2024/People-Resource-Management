@@ -91,9 +91,11 @@ public class UnitsController : ControllerBase
 
         return Ok(result);
     }
-
+    
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(UnitDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UnitDto>> Create(UnitDto dto)
     {
         var unit = new Unit
@@ -116,6 +118,9 @@ public class UnitsController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, UnitDto dto)
     {
         var unit = await _unitService.GetByIdAsync(id);
@@ -127,13 +132,21 @@ public class UnitsController : ControllerBase
 
         unit.Name = dto.Name;
         unit.ParentUnitId = dto.ParentUnitId;
+
         await _unitService.UpdateAsync(unit);
+
         return NoContent();
     }
     
     [HttpPatch("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateUnit(int id, [FromBody] JsonPatchDocument<UnitPatchDto> patchDocument)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpdateUnit(
+        int id,
+        [FromBody] JsonPatchDocument<UnitPatchDto> patchDocument)
     {
         if (patchDocument == null)
         {
@@ -155,6 +168,7 @@ public class UnitsController : ControllerBase
         }
 
         await _unitService.UpdateUnitAsync(id, dto);
+
         return NoContent();
     }
 

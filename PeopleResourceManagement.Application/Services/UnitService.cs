@@ -3,6 +3,7 @@ using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Repositories;
 using PeopleResourceManagement.Application.DTOs;
 using PeopleResourceManagement.Domain.UnitOfWork;
+using PeopleResourceManagement.Application.Exceptions;
 
 namespace PeopleResourceManagement.Application.Services;
 
@@ -37,7 +38,14 @@ public class UnitService : IUnitService
 
         if (unit == null)
         {
-            throw new KeyNotFoundException();
+            throw new UnitNotFoundException(id);
+        }
+
+        var unitExists = await _unitRepository.ExistsByNameAsync(dto.Name, id);
+
+        if (unitExists)
+        {
+            throw new DuplicateUnitNameException(dto.Name);
         }
 
         if (dto.ChildUnitIds.Contains(id))
@@ -45,11 +53,12 @@ public class UnitService : IUnitService
             throw new InvalidOperationException("A unit cannot be its own child.");
         }
 
-        unit.Name = dto.Name;
+        unit.Name = dto.Name.Trim();
+
         await _unitRepository.UpdateAsync(unit);
         await _unitOfWork.SaveChangesAsync();
     }
-
+    
     public UnitService(IUnitRepository unitRepository, IUnitOfWork unitOfWork)
     {
         _unitRepository = unitRepository;
@@ -83,6 +92,13 @@ public class UnitService : IUnitService
 
     public async Task<Unit> AddAsync(Unit unit)
     {
+        var unitExists = await _unitRepository.ExistsByNameAsync(unit.Name);
+        
+        if (unitExists)
+        {
+            throw new DuplicateUnitNameException(unit.Name);
+        }
+
         if (unit.ParentUnitId != null)
         {
             var parent = await _unitRepository.GetByIdAsync(unit.ParentUnitId.Value);
@@ -93,27 +109,45 @@ public class UnitService : IUnitService
             }
         }
 
+        unit.Name = unit.Name.Trim();
+
         var addedUnit = await _unitRepository.AddAsync(unit);
+
         await _unitOfWork.SaveChangesAsync();
-        return addedUnit;    
+
+        return addedUnit;
     }
 
     public async Task UpdateAsync(Unit unit)
     {
+        var unitExists = await _unitRepository.ExistsByNameAsync(
+            unit.Name,
+            unit.Id);
+
+        if (unitExists)
+        {
+            throw new DuplicateUnitNameException(unit.Name);
+        }
+
         if (unit.Id == unit.ParentUnitId)
         {
-            throw new InvalidOperationException("Unit cannot be its own parent.");
+            throw new InvalidOperationException(
+                "Unit cannot be its own parent.");
         }
 
         if (unit.ParentUnitId != null)
         {
-            var parent = await _unitRepository.GetByIdAsync(unit.ParentUnitId.Value);
+            var parent = await _unitRepository
+                .GetByIdAsync(unit.ParentUnitId.Value);
 
             if (parent == null)
             {
-                throw new InvalidOperationException("Parent unit does not exist.");
+                throw new InvalidOperationException(
+                    "Parent unit does not exist.");
             }
         }
+
+        unit.Name = unit.Name.Trim();
 
         await _unitRepository.UpdateAsync(unit);
         await _unitOfWork.SaveChangesAsync();
