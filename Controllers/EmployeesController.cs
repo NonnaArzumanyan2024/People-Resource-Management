@@ -56,6 +56,22 @@ public class EmployeesController : ControllerBase
         var employeeDto = _mapper.Map<EmployeeDto>(employee);
         return Ok(employeeDto);
     }
+    
+    [HttpGet("by-email")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<EmployeeDto>> GetByEmail([FromQuery] string email)
+    {
+        var employee = await _service.GetByEmailAsync(email);
+
+        if (employee == null)
+        {
+            return NotFound();
+        }
+
+        var employeeDto = _mapper.Map<EmployeeDto>(employee);
+
+        return Ok(employeeDto);
+    }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]

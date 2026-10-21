@@ -3,12 +3,13 @@ using PeopleResourceManagement.Application.Interfaces;
 using PeopleResourceManagement.Domain.Repositories;
 using PeopleResourceManagement.Domain.Specifications.Employees;
 using PeopleResourceManagement.Domain.UnitOfWork;
+using System.Diagnostics;
 
 namespace PeopleResourceManagement.Application.Services;
 
 public class EmployeeService : IEmployeeService
 {
-    private readonly IRepository<Employee> _repository;
+    private readonly IEmployeeRepository _repository;    
     private readonly IUnitOfWork _unitOfWork;
 
     public EmployeeService(IEmployeeRepository repository, IUnitOfWork unitOfWork)
@@ -21,10 +22,22 @@ public class EmployeeService : IEmployeeService
     {
         return await _repository.GetAllAsync();
     }
-
+    
+    //stopwatch
     public async Task<Employee?> GetByIdAsync(int id)
     {
-        return await _repository.GetByIdAsync(id);
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            return await _repository.GetByIdAsync(id);
+        }
+        finally
+        {
+            stopwatch.Stop();
+
+            Console.WriteLine($"GET Employee ID: {id} | Execution Time: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
+        }
     }
 
     public async Task<Employee> AddAsync(Employee employee)
@@ -32,6 +45,12 @@ public class EmployeeService : IEmployeeService
         var addedEmployee = await _repository.AddAsync(employee);
         await _unitOfWork.SaveChangesAsync();
         return addedEmployee;
+    }
+    
+    //stopwatch
+    public async Task<Employee?> GetByEmailAsync(string email)
+    {
+        return await _repository.GetByEmailAsync(email);
     }
 
     public async Task UpdateAsync(Employee employee)

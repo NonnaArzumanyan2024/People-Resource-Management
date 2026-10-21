@@ -2,11 +2,11 @@ using PeopleResourceManagement.Domain.Entities;
 
 namespace PeopleResourceManagement.Application.Interfaces;
 
-
 public interface IEmployeeService
 {
     Task<List<Employee>> GetAllAsync();
     Task<Employee?> GetByIdAsync(int id);
+    Task<Employee?> GetByEmailAsync(string email);
     Task<Employee> AddAsync(Employee employee);
     Task UpdateAsync(Employee employee);
     Task DeleteAsync(int id);
