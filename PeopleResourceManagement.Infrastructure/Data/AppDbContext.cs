@@ -40,6 +40,10 @@ public class AppDbContext : DbContext
             .HasForeignKey(employee => employee.UnitId)
             .OnDelete(DeleteBehavior.SetNull);
         
+        modelBuilder.Entity<Employee>()
+            .Property(employee => employee.EmployeeNumber)
+            .HasDefaultValueSql("nextval('\"EmployeeNumberSeq\"')");
+        
         modelBuilder.Entity<User>()
             .HasOne(user => user.Employee)
             .WithMany()

@@ -42,9 +42,10 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("EmployeeNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("EmployeeNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValueSql("nextval('\"EmployeeNumberSeq\"')");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -78,6 +79,9 @@ namespace PeopleResourceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmployeeNumber")
+                        .IsUnique();
 
                     b.HasIndex("UnitId");
 

@@ -59,8 +59,8 @@ public class OrganizationTreeHtmlExportService
                 $"{WebUtility.HtmlEncode(employee.LastName)}<br>");
 
             html.AppendLine(
-                $"Employee Number: {WebUtility.HtmlEncode(employee.EmployeeNumber)}<br>");
-
+                $"Employee Number: {WebUtility.HtmlEncode(employee.EmployeeNumber.ToString())}<br>");
+            
             html.AppendLine(
                 $"Email: {WebUtility.HtmlEncode(employee.Email)}<br>");
 
