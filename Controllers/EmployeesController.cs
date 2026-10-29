@@ -25,10 +25,20 @@ public class EmployeesController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<EmployeeDto>>> GetAll()
+    public async Task<ActionResult<List<EmployeeDto>>> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var employees = await _service.GetAllAsync();
+        if (pageNumber < 1 || pageSize < 1 || pageSize > 100)
+        {
+            return BadRequest(
+                "pageNumber must be >= 1 and pageSize must be between 1 and 100.");
+        }
+
+        var employees = await _service.GetSortedAsync(pageNumber, pageSize);
+
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
+
         return Ok(employeeDtos);
     }
 

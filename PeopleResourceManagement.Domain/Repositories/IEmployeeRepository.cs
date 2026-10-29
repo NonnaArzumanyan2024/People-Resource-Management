@@ -5,4 +5,5 @@ namespace PeopleResourceManagement.Domain.Repositories;
 public interface IEmployeeRepository : IRepository<Employee>
 {
     Task<Employee?> GetByEmailAsync(string email);
+    Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize);
 }

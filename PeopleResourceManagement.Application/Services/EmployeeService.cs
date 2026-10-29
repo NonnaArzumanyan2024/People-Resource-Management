@@ -23,6 +23,13 @@ public class EmployeeService : IEmployeeService
         return await _repository.GetAllAsync();
     }
     
+    public async Task<List<Employee>> GetSortedAsync(
+        int pageNumber,
+        int pageSize)
+    {
+        return await _repository.GetSortedAsync(pageNumber, pageSize);
+    }
+    
     //stopwatch
     public async Task<Employee?> GetByIdAsync(int id)
     {

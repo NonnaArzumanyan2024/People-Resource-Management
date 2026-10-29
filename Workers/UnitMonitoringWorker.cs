@@ -70,6 +70,7 @@ public class UnitMonitoringWorker : BackgroundService
                 break;
             }
         }
+        
 
         _logger.LogInformation("UnitMonitoringWorker stopped");
     }
