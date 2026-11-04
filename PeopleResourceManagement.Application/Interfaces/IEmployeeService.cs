@@ -5,7 +5,7 @@ namespace PeopleResourceManagement.Application.Interfaces;
 public interface IEmployeeService
 {
     Task<List<Employee>> GetAllAsync();
-    Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize);
+    Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize, string sortBy, string sortDirection);
     Task<Employee?> GetByIdAsync(int id);
     Task<Employee?> GetByEmailAsync(string email);
     Task<Employee> AddAsync(Employee employee);

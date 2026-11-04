@@ -16,6 +16,7 @@ using PeopleResourceManagement.Infrastructure.Services;
 using PeopleResourceManagement.Infrastructure.UnitOfWork;
 using People_Specification.Api.Workers;
 using People_Specification.Api.Exceptions;
+using System.Text.Json.Serialization;
 
 Env.Load();
 
@@ -70,10 +71,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     })
-    .AddNewtonsoftJson();
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+    });
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(EmployeeProfile));
 

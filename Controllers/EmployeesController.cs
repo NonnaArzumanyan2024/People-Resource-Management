@@ -4,6 +4,7 @@ using PeopleResourceManagement.Domain.Entities;
 using PeopleResourceManagement.Application.Interfaces;
 using AutoMapper;
 using PeopleResourceManagement.Application.DTOs;
+using PeopleResourceManagement.Domain.Enums;
 
 namespace People_Specification.Api.Controllers;
 
@@ -27,15 +28,30 @@ public class EmployeesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<EmployeeDto>>> GetAll(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] EmployeeSortBy sortBy = EmployeeSortBy.FirstName,
+        [FromQuery] string sortDirection = "asc")
     {
         if (pageNumber < 1 || pageSize < 1 || pageSize > 100)
         {
-            return BadRequest(
-                "pageNumber must be >= 1 and pageSize must be between 1 and 100.");
+            return BadRequest("pageNumber must be >= 1 and pageSize must be between 1 and 100.");
         }
 
-        var employees = await _service.GetSortedAsync(pageNumber, pageSize);
+        if (!Enum.IsDefined(sortBy))
+        {
+            return BadRequest("Invalid sortBy field.");
+        }
+        
+        if (string.IsNullOrWhiteSpace(sortDirection) || !new[] { "asc", "desc" }.Contains(sortDirection, StringComparer.OrdinalIgnoreCase))
+        {
+            return BadRequest("sortDirection must be asc or desc.");
+        }
+        
+        var employees = await _service.GetSortedAsync(
+            pageNumber,
+            pageSize,
+            sortBy.ToString(),
+            sortDirection);
 
         var employeeDtos = _mapper.Map<List<EmployeeDto>>(employees);
 

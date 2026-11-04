@@ -30,7 +30,7 @@ public class EmployeeRepository : GenericRepository<Employee>, IEmployeeReposito
         }
     }
     
-    public async Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize)
+    public async Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize, string sortBy, string sortDirection)
     {
         if (pageNumber < 1)
         {
@@ -44,9 +44,36 @@ public class EmployeeRepository : GenericRepository<Employee>, IEmployeeReposito
 
         int skip = checked((pageNumber - 1) * pageSize);
 
-        return await _context.Employees
-            .AsNoTracking()
-            .OrderBy(e => e.FirstName)
+        var query = _context.Employees.AsNoTracking();
+
+        bool descending = sortDirection.Equals("desc", StringComparison.OrdinalIgnoreCase);
+
+        var sortedQuery = sortBy.ToLowerInvariant() switch
+        {
+            "firstname" => descending
+                ? query.OrderByDescending(e => e.FirstName)
+                : query.OrderBy(e => e.FirstName),
+
+            "lastname" => descending
+                ? query.OrderByDescending(e => e.LastName)
+                : query.OrderBy(e => e.LastName),
+
+            "email" => descending
+                ? query.OrderByDescending(e => e.Email)
+                : query.OrderBy(e => e.Email),
+
+            "employeenumber" => descending
+                ? query.OrderByDescending(e => e.EmployeeNumber)
+                : query.OrderBy(e => e.EmployeeNumber),
+
+            "hiredate" => descending
+                ? query.OrderByDescending(e => e.HireDate)
+                : query.OrderBy(e => e.HireDate),
+
+            _ => query.OrderBy(e => e.FirstName)
+        };
+
+        return await sortedQuery
             .ThenBy(e => e.Id)
             .Skip(skip)
             .Take(pageSize)

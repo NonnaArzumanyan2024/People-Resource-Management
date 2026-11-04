@@ -23,11 +23,9 @@ public class EmployeeService : IEmployeeService
         return await _repository.GetAllAsync();
     }
     
-    public async Task<List<Employee>> GetSortedAsync(
-        int pageNumber,
-        int pageSize)
+    public async Task<List<Employee>> GetSortedAsync(int pageNumber, int pageSize, string sortBy, string sortDirection)
     {
-        return await _repository.GetSortedAsync(pageNumber, pageSize);
+        return await _repository.GetSortedAsync(pageNumber, pageSize, sortBy, sortDirection);
     }
     
     //stopwatch
